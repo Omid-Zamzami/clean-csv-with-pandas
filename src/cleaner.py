@@ -20,7 +20,7 @@ def parse_argument(arg=None):
     return parser.parse_args(arg)
 
 
-def load_data(file_path):
+def load_data(file_path: Path):
     if not file_path.exists():
         raise FileNotFoundError(f"file in {file_path} was not found!")
 
@@ -37,7 +37,7 @@ def load_data(file_path):
 
 
 def remove_duplicate_rows(df: pd.DataFrame):
-    return df.drop_duplicates()
+    return df.drop_duplicates().copy()
 
 
 def clean_missing_values(df: pd.DataFrame):
@@ -64,9 +64,55 @@ def clean_data_types(df: pd.DataFrame):
         df["Join_Date"] = pd.to_datetime(df["Join_Date"], errors="coerce")
 
     if "Age" in df.columns:
-        df["Age"] = df["Age"].astype(int)
+        df["Age"] = pd.to_numeric(df["Age"], errors="coerce").round().astype("Int64")
+
+    if "Phone" in df.columns:
+        df["Phone"] = (
+            df["Phone"]
+            .astype(str)
+            .str.replace(r"\.0$", "", regex=True)
+            .replace("nan", "")
+        )
 
     return df
+
+
+def clean_text_and_columns(df: pd.DataFrame):
+    if "Phone" in df.columns:
+        df["Phone"] = df["Phone"].str.lstrip("-")
+        df["Phone"] = df["Phone"].apply(lambda x: x.zfill(10) if x and x != "Unknown" else x)
+
+    if "Email" in df.columns:
+        df["Email"] = df["Email"].astype(str).str.strip().str.lower()
+
+    if "Department_Region" in df.columns:
+        split_data = df["Department_Region"].astype(str).str.split("-", expand=True)
+        df["Department"] = split_data[0].str.strip() if 0 in split_data.columns else "Unknown"
+        df["Region"] = split_data[1].str.strip() if 1 in split_data.columns else "Unknown"
+        df = df.drop(columns=["Department_Region"])
+        
+        preferred_order = [
+            "Employee_ID", "First_Name", "Last_Name", "Age",
+            "Department", "Region", "Status", "Join_Date",
+            "Salary", "Email", "Phone", "Performance_Score", "Remote_Work"
+        ]
+
+        existing_ordered = [col for col in preferred_order if col in df.columns]
+        remaining = [col for col in df.columns if col not in existing_ordered]
+        df = df[existing_ordered + remaining]
+
+    return df
+
+
+def save_data(df: pd.DataFrame, cleaned_file_path):
+    suffix = cleaned_file_path.suffix.lower()
+
+    if suffix == ".csv":
+        df.to_csv(cleaned_file_path, index=False)
+    elif suffix in [".xlsx", ".xls"]:
+        df.to_excel(cleaned_file_path, index=False)
+    elif suffix == ".json":
+        df.to_json(cleaned_file_path, orient="records", indent=4)
 
 
 def cleaner():
@@ -82,8 +128,11 @@ def cleaner():
 
     df = clean_data_types(df=df)
 
-    print(df.head(10))
-    print(df.info())
+    df = clean_text_and_columns(df=df)
+
+    cleaned_file_path = BASE_DIR / "data" / f"cleaned_{arg.file}"
+
+    save_data(df=df, cleaned_file_path=cleaned_file_path)
 
 
 if __name__ == "__main__":
