@@ -1,0 +1,49 @@
+# Ignore generated cleaned files
+data/cleaned_*
+cleaned_*
+
+# Ignore temporary data export formats
+*.tmp
+*.log
+
+# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Testing & Coverage (pytest)
+.pytest_cache/
+.coverage
+coverage.xml
+*.cover
+htmlcov/
+
+# Jupyter Notebook Checkpoints (if used)
+.ipynb_checkpoints/
+
+# IDE & Editors (VS Code, PyCharm)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
