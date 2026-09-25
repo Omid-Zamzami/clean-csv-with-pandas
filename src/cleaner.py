@@ -59,6 +59,15 @@ def clean_missing_values(df: pd.DataFrame):
 
     return df
 
+def clean_data_types(df: pd.DataFrame):
+    if "Join_Date" in df.columns:
+        df["Join_Date"] = pd.to_datetime(df["Join_Date"], errors="coerce")
+
+    if "Age" in df.columns:
+        df["Age"] = df["Age"].astype(int)
+
+    return df
+
 
 def cleaner():
     arg = parse_argument()
@@ -71,7 +80,10 @@ def cleaner():
 
     df = clean_missing_values(df=df)
 
+    df = clean_data_types(df=df)
+
     print(df.head(10))
+    print(df.info())
 
 
 if __name__ == "__main__":
