@@ -36,12 +36,40 @@ def load_data(file_path):
         raise ValueError(f"{suffix} is not supported. Allowed formats: csv, xlsx, json.")
 
 
+def remove_duplicate_rows(df: pd.DataFrame):
+    return df.drop_duplicates()
+
+
+def clean_missing_values(df: pd.DataFrame):
+    df = df.dropna(subset=["Employee_ID"])
+
+    if "Age" in df.columns:
+        age_median = df["Age"].median()
+        df["Age"] = df["Age"].fillna(age_median)
+
+    if "Salary" in df.columns:
+        salary_median = df["Salary"].median()
+        df["Salary"] = df["Salary"].fillna(salary_median)
+
+    excluded_columns = ["Employee_ID", "Age", "Salary", "Join_Date", "Phone"]
+
+    for column in df.columns:
+        if column not in excluded_columns:
+            df[column] = df[column].fillna("Unknown")
+
+    return df
+
+
 def cleaner():
     arg = parse_argument()
 
     file_path = BASE_DIR / "data" / f"{arg.file}"
 
-    df = load_data(file_path)
+    df = load_data(file_path=file_path)
+
+    df = remove_duplicate_rows(df=df)
+
+    df = clean_missing_values(df=df)
 
     print(df.head(10))
 
